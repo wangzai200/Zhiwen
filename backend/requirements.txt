@@ -1,0 +1,10 @@
+celery
+python-docx
+Flask
+Flask_Cors
+PyJWT
+Werkzeug
+jieba
+
+psutil
+requests
