@@ -1,0 +1,7 @@
+docs/
+*.safetensors
+__pycache__/
+.idea/
+runs/
+data_dir/
+output_dir/
