@@ -2,9 +2,17 @@ celery
 python-docx
 Flask
 Flask_Cors
+jieba
 PyJWT
 Werkzeug
-jieba
+eventlet
 
 psutil
 requests
+
+# 测试依赖
+pytest
+pytest-flask
+pytest-mock
+pytest-cov
+requests-mock

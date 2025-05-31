@@ -54,7 +54,7 @@ class Auth:
             # payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'), leeway=datetime.timedelta(seconds=10))
 
             payload = jwt.decode(auth_token, Config.SECRET_KEY, options={'verify_exp': False}, algorithms=['HS256'])
-            if ('data' in payload and 'id' in payload['data']):
+            if 'data' in payload and 'id' in payload['data']:
                 return payload
             else:
                 raise jwt.InvalidTokenError
