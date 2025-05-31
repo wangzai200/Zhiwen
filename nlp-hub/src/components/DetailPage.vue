@@ -185,7 +185,13 @@ export default {
               this.summaryList.ret1 = ret[3]['ret1'];
               this.summaryList.ret2 = ret[3]['ret2'];
               if(ret[6]){
-                this.file_name = ret[6].substring(1);
+                // 检查是否以特定字符开头需要处理
+                if(ret[6].startsWith('/') || ret[6].startsWith('\\')){
+                  this.file_name = ret[6].substring(1);
+                } else {
+                  // 不需要处理时，保留完整路径
+                  this.file_name = ret[6];
+                }
               }
 
               this.contents = ret[2];
