@@ -31,7 +31,7 @@
               <br>
               <br>
               <a-button-group>
-                <a-button>取消</a-button>
+                <a-button @click="handleReject(item.detail_id)">取消</a-button>
                 <a-button type="primary" @click="admin_pass(item.detail_id)">
                   通过
                 </a-button>
@@ -151,6 +151,28 @@ export default {
 
           }
       )
+    },
+    
+    handleReject(sid) {
+      axios.get(this.HOST + "/admin_reject", {
+        params: {
+          sid: sid,
+        },
+        headers: {
+          "Authorization": window.localStorage.getItem('token'),
+        }
+      }).then(
+        res => {
+          if (res.data.code === 0) {
+            this.$message.success('已取消');
+            this.get_data();
+          } else {
+            this.$message.error('操作失败：' + res.data.msg);
+          }
+        }
+      ).catch(error => {
+        this.$message.error('网络错误：' + error);
+      });
     },
   }
 }

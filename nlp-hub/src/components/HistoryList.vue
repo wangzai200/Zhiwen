@@ -18,9 +18,9 @@
     <a-table :data-source="data" :columns="columns" :loading="loading">
       <span slot="tags" slot-scope="tags">
       <a-tag
-          v-for="tag in tags"
-          :key="tag"
-          :color="(tag == '待审核' || tag=='排队中')? 'orange' : 'green'"
+      v-for="tag in tags"
+      :key="tag"
+      :color="tag == '不通过' ? 'red' : (tag == '待审核' || tag=='排队中') ? 'orange' : 'green'"
       >
         {{ tag }}
       </a-tag>
@@ -305,6 +305,9 @@ export default {
 
                 if(ret[i][11] == '1'){
                   verify_tag = '审核通过';
+                }
+                if(ret[i][11] == '-1'){
+                  verify_tag = '不通过';
                 }
                 let rowData = {
                   key: i.toString(),
