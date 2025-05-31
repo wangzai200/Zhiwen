@@ -12,14 +12,14 @@ ALLOWED_IPS = [
 ]
 
 
-@app.before_request
-def check_ip():
-    client_ip = request.remote_addr  # 直接获取客户端 IP
-    # 如果使用反向代理（如 Nginx），需获取 X-Forwarded-For 头
-    # client_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
-
-    if client_ip not in ALLOWED_IPS:
-        return jsonify({"error": "IP 未被授权访问"}), 403
+# @app.before_request
+# def check_ip():
+#     client_ip = request.remote_addr  # 直接获取客户端 IP
+#     # 如果使用反向代理（如 Nginx），需获取 X-Forwarded-For 头
+#     # client_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
+#
+#     if client_ip not in ALLOWED_IPS:
+#         return jsonify({"error": "IP 未被授权访问"}), 403
 
 
 CORS_CONFIG = {
@@ -132,32 +132,50 @@ def nvidia_info():
         "gpus": []
     }
     try:
+        # 初始化NVML
         nvmlInit()
         nvidia_dict["nvidia_version"] = nvmlSystemGetDriverVersion()
         nvidia_dict["nvidia_count"] = nvmlDeviceGetCount()
+        
         for i in range(nvidia_dict["nvidia_count"]):
             handle = nvmlDeviceGetHandleByIndex(i)
             memory_info = nvmlDeviceGetMemoryInfo(handle)
+            
+            # 显存占用率 (新增)
+            memory_usage = round(memory_info.used / memory_info.total * 100, 1)
+            
+            # GPU计算单元利用率 (新增)
+            utilization = nvmlDeviceGetUtilizationRates(handle)
+            gpu_usage = utilization.gpu
+            
+            # 温度、功率状态等原有数据
             gpu = {
                 "gpu_name": nvmlDeviceGetName(handle),
                 "total": memory_info.total,
                 "free": memory_info.free,
                 "used": memory_info.used,
+                "memory_usage_percent": memory_usage,  # 显存占用百分比
+                "gpu_usage_percent": gpu_usage,        # GPU计算核心占用率
                 "temperature": f"{nvmlDeviceGetTemperature(handle, 0)}℃",
                 "powerStatus": nvmlDeviceGetPowerState(handle)
             }
             nvidia_dict['gpus'].append(gpu)
-    except NVMLError as _:
+            
+    except NVMLError as e:
         nvidia_dict["state"] = False
-    except Exception as _:
+        # 可选：记录错误日志
+        app.logger.error(f"NVML error: {str(e)}")
+    except Exception as e:
         nvidia_dict["state"] = False
+        # 可选：记录通用错误日志
+        # app.logger.error(f"Unexpected error: {str(e)}")
     finally:
         try:
             nvmlShutdown()
         except:
             pass
+    # print(nvidia_dict)
     return nvidia_dict
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3000, debug=True)

@@ -5,3 +5,5 @@ venv/
 ./upload
 
 ./frontend/nlp-hub/dist/
+*.log
+upload/

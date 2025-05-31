@@ -30,7 +30,7 @@ export default {
   },
   methods: {
     getWordCloud(id) {
-      axios.get(this.HOST + "/get_cloud", {
+      axios.get(this.HOST + "/api/get_cloud", {
         params: {id: id}
       }).then(
           res => {

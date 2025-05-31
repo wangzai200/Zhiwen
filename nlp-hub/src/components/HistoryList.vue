@@ -286,7 +286,7 @@ export default {
       this.loading = true;
 
       let new_data = [];
-      axios.get(this.HOST + "/get_history", {
+      axios.get(this.HOST + "/api/get_history", {
         params: {}
       }).then(
           res => {

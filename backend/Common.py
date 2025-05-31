@@ -28,6 +28,11 @@ class Config:
     APP_PORT = 5001
     APP_DEBUG = True
 
+    REDIS_HOST = '127.0.0.1'
+    REDIS_PORT = 6379
+    REDIS_PASSWORD = None
+    REDIS_DB = 0
+
     GPU_Node = {
         'GPU1': 'http://127.0.0.1:3000'
     }

@@ -83,7 +83,7 @@ export default {
     get_data() {
       let new_data = [];
 
-      axios.get(this.HOST + "/get_history", {
+      axios.get(this.HOST + "/api/get_history", {
         params: {}
       }).then(
           res => {
@@ -127,7 +127,7 @@ export default {
       )
     },
     admin_pass(sid) {
-      axios.get(this.HOST + "/admin_pass", {
+      axios.get(this.HOST + "/api/admin_pass", {
         params: {'sid': sid},
         headers: {
           "Authorization": window.localStorage.getItem('token'),
@@ -154,7 +154,7 @@ export default {
     },
     
     handleReject(sid) {
-      axios.get(this.HOST + "/admin_reject", {
+      axios.get(this.HOST + "/api/admin_reject", {
         params: {
           sid: sid,
         },

@@ -17,6 +17,7 @@ import functools
 import json
 import datetime
 import psutil
+import requests
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -53,13 +54,13 @@ def loginRequired(func):
     return inner
 
 
-@app.route('/')
+@app.route('/api/')
 @adminRequired
 def hello_world():
     return success('Hello World!')
 
 
-@app.route('/get_summary', methods=['POST'])
+@app.route('/api/get_summary', methods=['POST'])
 @loginRequired
 def get_summary():
     content = request.form.get('content')
@@ -70,7 +71,7 @@ def get_summary():
 
 
 # 上传文件
-@app.route('/upload', methods=['POST'])
+@app.route('/api/upload', methods=['POST'])
 def upload():
     f = request.files['file']
     filename = f.filename.split('.')[0] + '_' + str(uuid.uuid4())[0:7] + '.' + f.filename.split('.')[-1]
@@ -110,7 +111,7 @@ def upload():
 
 
 # 获取压缩包或单个txt文件的摘要
-@app.route('/get_file_summary')
+@app.route('/api/get_file_summary')
 @loginRequired
 def get_file_summary():
     try:
@@ -165,7 +166,7 @@ def get_file_summary():
 
 
 # 获取历史处理记录
-@app.route('/get_history')
+@app.route('/api/get_history')
 def get_history():
     ret = Dbconn.dbGet(
         """
@@ -201,15 +202,15 @@ def get_history():
 
 
 # 下载文件
-@app.route('/download', methods=['GET'])
+@app.route('/api/download', methods=['GET'])
 def download():
     filename = request.args.get('filename')
-    filename = filename.replace('\\', '/')
+
     return send_from_directory('./upload/', filename)
 
 
 # 获取指定记录详情
-@app.route('/get_detail')
+@app.route('/api/get_detail')
 def get_detail():
     id = request.args.get('id')
     ret = Dbconn.dbGet("SELECT * FROM summary_history WHERE id=?", [id])
@@ -225,7 +226,7 @@ def get_detail():
 
 
 # 获取指定记录词云
-@app.route('/get_cloud')
+@app.route('/api/get_cloud')
 def get_cloud():
     id = request.args.get('id')
 
@@ -246,7 +247,7 @@ def get_cloud():
 
 
 # 提交评价分数
-@app.route('/user_rate')
+@app.route('/api/user_rate')
 def user_rate():
     sid = request.args.get('sid')
     value = request.args.get('value')
@@ -257,7 +258,7 @@ def user_rate():
 
 
 # 获取评论统计
-@app.route('/get_rate_statistics')
+@app.route('/api/get_rate_statistics')
 def get_rate_statistics():
     ret = Dbconn.dbGet("SELECT value, COUNT(value) from user_rate GROUP BY value;", [])
 
@@ -267,7 +268,7 @@ def get_rate_statistics():
 
 
 # 提交手动标题和摘要选择，并提交修改后内容
-@app.route('/upload_choice', methods=['POST'])
+@app.route('/api/upload_choice', methods=['POST'])
 def upload_choice():
     id = request.form.get('id')
     title = request.form.get('title')
@@ -297,7 +298,7 @@ def upload_choice():
 
 
 # 用户注册
-@app.route('/user_register', methods=['POST'])
+@app.route('/api/user_register', methods=['POST'])
 def user_register():
     email = request.form.get('email')
     password = request.form.get('password')
@@ -319,7 +320,7 @@ def user_register():
 
 
 # 用户登录
-@app.route('/user_login', methods=['POST'])
+@app.route('/api/user_login', methods=['POST'])
 def user_login():
     email = request.form.get('email')
     password = request.form.get('password')
@@ -347,7 +348,7 @@ def user_login():
 
 
 # 编辑摘要标题
-@app.route('/edit_summary', methods=['POST'])
+@app.route('/api/edit_summary', methods=['POST'])
 @loginRequired
 def edit_summary():
     sid = request.form.get('sid')
@@ -378,7 +379,7 @@ def edit_summary():
 
 
 # 管理员审核通过
-@app.route('/admin_pass')
+@app.route('/api/admin_pass')
 @adminRequired
 def admin_pass():
     sid = request.args.get('sid')
@@ -392,7 +393,7 @@ def admin_pass():
 
 
 # 管理员审核拒绝
-@app.route('/admin_reject')
+@app.route('/api/admin_reject')
 @adminRequired
 def admin_reject():
     sid = request.args.get('sid')
@@ -406,20 +407,31 @@ def admin_reject():
 
 
 # 获取统计状态
-@app.route('/status')
+@app.route('/api/status')
 def status():
     today_datetime = datetime.datetime.now().strftime('%Y-%m-%d')
     today_sum = \
         Dbconn.dbGet(f"SELECT COUNT(*) FROM summary_history WHERE create_datetime LIKE '%%{today_datetime}%%'", [])[0][
             0]
     today_unverify = Dbconn.dbGet(
-        f"SELECT COUNT(*) FROM summary_history WHERE isVerify=0", [])[
-        0][0]
+        f"SELECT COUNT(*) FROM summary_history WHERE isVerify=0", [])[0][0]
+
+    # 向GPU节点发送请求，获取GPU使用情况
+    gpu_url = list(Config.GPU_Node.values())[0]  # 获取GPU节点URL
+    print(gpu_url)
+    try:
+        response = requests.get(f"{gpu_url}/nvidia_info")
+        gpu_info = response.json()  # 解析返回的JSON数据
+        gpu_usage_percent = gpu_info['gpus'][0]['gpu_usage_percent']  # 提取GPU计算核心使用率
+    except requests.exceptions.RequestException as e:
+        gpu_usage_percent = "Error"  # 如果请求出错，设置为Error
+    
     info = {
         'cpu': str(psutil.cpu_percent(1)),
         'mem': str(psutil.virtual_memory().percent),
         'today_sum': today_sum,
-        'today_unverify': today_unverify
+        'today_unverify': today_unverify,
+        'gpu_usage_percent': str(gpu_usage_percent)  # 添加GPU使用率
     }
 
     return success(body=info)

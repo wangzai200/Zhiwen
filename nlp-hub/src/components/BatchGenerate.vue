@@ -9,7 +9,7 @@
 
 
           <a-upload
-              :action="this.HOST + '/upload'"
+              :action="this.HOST + '/api/upload'"
               :multiple="true"
               :file-list="fileList"
               @change="handleChange"
@@ -99,7 +99,7 @@ export default {
       if (!this.fileName) {
         return this.$message.error('文件未上传!');
       }
-      axios.get(this.HOST + "/get_file_summary", {
+      axios.get(this.HOST + "/api/get_file_summary", {
         headers:{
           "Authorization": window.localStorage.getItem('token'),
         },

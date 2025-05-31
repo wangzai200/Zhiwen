@@ -33,7 +33,7 @@ export default {
       formData.append('auth', this.auth);
       formData.append('username', this.username);
 
-      axios.post(this.HOST + "/user_register", formData, {
+      axios.post(this.HOST + "/api/user_register", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

@@ -148,7 +148,7 @@
               </a-col>
               <a-col :span="7">
                 <a-card title="GPU">
-                  <a-progress type="dashboard" :percent="0"/>
+                  <a-progress type="dashboard" :percent="statistics.gpu_percent"/>
                 </a-card>
               </a-col>
             </a-row>
@@ -229,6 +229,7 @@ export default {
         cpu_percent: 0,
         mem_percent: 0,
         loading: true,
+        gpu_usage_percent: 0,
       },
 
       modal: {
@@ -262,7 +263,7 @@ export default {
       formData.append('content', this.input_contents);
       formData.append('max_len', this.summary_max_words);
 
-      axios.post(this.HOST + "/get_summary", formData, {
+      axios.post(this.HOST + "/api/get_summary", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           "Authorization": window.localStorage.getItem('token'),
@@ -296,7 +297,7 @@ export default {
 
     },
     onRate(rate_value) {
-      axios.get(this.HOST + "/user_rate", {
+      axios.get(this.HOST + "/api/user_rate", {
         params: {
           sid: this.sid,
           value: rate_value,
@@ -322,7 +323,7 @@ export default {
 
     },
     getStatus() {
-      axios.get(this.HOST + "/status", {}).then(
+      axios.get(this.HOST + "/api/status", {}).then(
           // 使用箭头函数this才会指代当前的Vue对象，如果使用的是function()，this指代的是window对象
           res => {
             console.log(res.data);
@@ -330,7 +331,7 @@ export default {
             this.statistics.unverify = res.data['body']['today_unverify'];
             this.statistics.cpu_percent = parseFloat(res.data['body']['cpu']);
             this.statistics.mem_percent = parseFloat(res.data['body']['mem']);
-
+            this.statistics.gpu_percent = parseFloat(res.data['body']['gpu_usage_percent']);
             this.statistics.loading = false;
 
           }
