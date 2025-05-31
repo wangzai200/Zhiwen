@@ -1,0 +1,10 @@
+torch
+transformers
+jiagu
+pytest
+psutil
+numpy
+tqdm
+flask-cors
+flask
+nvidia-ml-py

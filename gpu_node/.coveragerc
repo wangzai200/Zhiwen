@@ -1,0 +1,6 @@
+[run]
+omit =
+    tests/*
+    */checkpoint-*
+    vocab/*
+    __pycache__/*
