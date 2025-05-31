@@ -204,7 +204,7 @@ def get_history():
 @app.route('/download', methods=['GET'])
 def download():
     filename = request.args.get('filename')
-
+    filename = filename.replace('\\', '/')
     return send_from_directory('./upload/', filename)
 
 
